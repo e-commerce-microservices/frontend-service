@@ -4,7 +4,10 @@ import { ForgotPassword } from "./components/ForgotPassword";
 import { Home } from "./components/Home";
 import { Login } from "./components/Login";
 import ProductDetail from "./components/ProductDetail";
+import { ProductListing } from "./components/ProductListing";
 import { Register } from "./components/Register";
+import { RegisterSeller } from "./components/SellerRegister";
+import { ShopManager } from "./components/ShopManager";
 
 export default function EcommerceRoute() {
 	return (
@@ -18,7 +21,14 @@ export default function EcommerceRoute() {
 			{/* home */}
 			<Route path="/" element={<Home />}></Route>
 
-			<Route path="/product/:product_id" element={<ProductDetail />}></Route>
+			<Route path="/product_detail" element={<ProductDetail />}></Route>
+
+			{/* supplier,shop */}
+			<Route path="/supplier/register" element={<RegisterSeller />}></Route>
+			<Route path="/manage_shop" element={<ShopManager />}></Route>
+
+			{/* Category */}
+			<Route path="/product_listing" element={<ProductListing />}></Route>
 		</Routes>
 	);
 }

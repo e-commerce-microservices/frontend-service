@@ -1,10 +1,12 @@
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import HomeIcon from "@mui/icons-material/Home";
+import LoginIcon from "@mui/icons-material/Login";
 import MailIcon from "@mui/icons-material/Mail";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import AppBar from "@mui/material/AppBar";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
@@ -16,7 +18,8 @@ import { alpha, styled } from "@mui/material/styles";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authHelper } from "../api/authApi";
 
 const Search = styled("div")(({ theme }) => ({
 	position: "relative",
@@ -64,6 +67,18 @@ export default function NavBar() {
 
 	const isMenuOpen = Boolean(anchorEl);
 	const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+	const navigate = useNavigate();
+
+	// get data from localStorage
+	const [currentUser, setCurrentUser] = React.useState(authHelper.getUser());
+	React.useEffect(() => {
+		const interval = setInterval(() => {
+			const currentUser = authHelper.getUser();
+			setCurrentUser(currentUser);
+		}, 2000);
+
+		return () => clearInterval(interval);
+	}, []);
 
 	const handleProfileMenuOpen = (event) => {
 		setAnchorEl(event.currentTarget);
@@ -76,6 +91,12 @@ export default function NavBar() {
 	const handleMenuClose = () => {
 		setAnchorEl(null);
 		handleMobileMenuClose();
+	};
+	const handleMenuCloseAndLogout = () => {
+		handleMenuClose();
+		authHelper.logOut();
+		setCurrentUser(null);
+		navigate("/");
 	};
 
 	const handleMobileMenuOpen = (event) => {
@@ -99,8 +120,10 @@ export default function NavBar() {
 			open={isMenuOpen}
 			onClose={handleMenuClose}
 		>
-			<MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-			<MenuItem onClick={handleMenuClose}>My account</MenuItem>
+			<MenuItem onClick={handleMenuClose} component={Link} to="/user/profile">
+				Profile
+			</MenuItem>
+			<MenuItem onClick={handleMenuCloseAndLogout}>Logout</MenuItem>
 		</Menu>
 	);
 
@@ -163,8 +186,16 @@ export default function NavBar() {
 					<Typography
 						variant="h6"
 						noWrap
-						component="div"
-						sx={{ display: { xs: "none", sm: "block" } }}
+						component={Link}
+						to="/"
+						sx={{
+							display: {
+								xs: "none",
+								sm: "block",
+								color: "#FFF",
+								textDecoration: "none",
+							},
+						}}
 					>
 						Ecommerce
 					</Typography>
@@ -178,42 +209,24 @@ export default function NavBar() {
 						/>
 					</Search>
 					<Box sx={{ flexGrow: 1 }} />
-					<Box sx={{ display: { xs: "none", md: "flex" } }}>
-						<IconButton color="inherit" size="large" component={Link} to="/">
-							<HomeIcon />
-						</IconButton>
-						<IconButton
-							size="large"
-							aria-label="show 17 new notifications"
-							color="inherit"
-							href="/notifications"
-						>
-							<Badge badgeContent={17} color="error">
-								<NotificationsIcon />
-							</Badge>
-						</IconButton>
+					{currentUser != null ? (
+						<AuthenticatedUser
+							menuId={menuId}
+							handleProfileMenuOpen={handleProfileMenuOpen}
+							userId={currentUser.id}
+							userRole={currentUser.role}
+						/>
+					) : (
 						<IconButton
 							size="large"
 							aria-label="show 17 carts"
 							color="inherit"
-							href="/carts"
+							href="/auth/login"
 						>
-							<Badge badgeContent={17} color="error">
-								<ShoppingCartIcon />
-							</Badge>
+							<LoginIcon />
 						</IconButton>
-						<IconButton
-							size="large"
-							edge="end"
-							aria-label="account of current user"
-							aria-controls={menuId}
-							aria-haspopup="true"
-							onClick={handleProfileMenuOpen}
-							color="inherit"
-						>
-							<AccountCircle />
-						</IconButton>
-					</Box>
+					)}
+
 					<Box sx={{ display: { xs: "flex", md: "none" } }}>
 						<IconButton
 							size="large"
@@ -233,3 +246,62 @@ export default function NavBar() {
 		</Box>
 	);
 }
+
+const AuthenticatedUser = ({
+	menuId,
+	handleProfileMenuOpen,
+	userId,
+	userRole,
+}) => {
+	return (
+		<Box sx={{ display: { xs: "none", md: "flex" } }}>
+			<IconButton color="inherit" size="large" component={Link} to="/">
+				<HomeIcon />
+			</IconButton>
+			{(userRole === "supplier" || userRole === "admin") && (
+				<IconButton
+					color="inherit"
+					size="large"
+					component={Link}
+					to={`/manage_shop?supplier_id=${userId}`}
+				>
+					<StorefrontIcon />
+				</IconButton>
+			)}
+
+			<IconButton
+				size="large"
+				aria-label="show 17 new notifications"
+				color="inherit"
+				component={Link}
+				to="/notifications"
+			>
+				<Badge badgeContent={17} color="error">
+					<NotificationsIcon />
+				</Badge>
+			</IconButton>
+			<IconButton
+				size="large"
+				aria-label="show 17 carts"
+				color="inherit"
+				component={Link}
+				to="/carts"
+			>
+				<Badge badgeContent={17} color="error">
+					<ShoppingCartIcon />
+				</Badge>
+			</IconButton>
+			<IconButton
+				size="large"
+				edge="end"
+				aria-label="account of current user"
+				aria-controls={menuId}
+				aria-haspopup="true"
+				onClick={handleProfileMenuOpen}
+				color="inherit"
+			>
+				<AccountCircle />
+			</IconButton>
+		</Box>
+	);
+};

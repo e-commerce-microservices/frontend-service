@@ -1,42 +1,52 @@
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import {
-	Avatar,
 	Box,
 	Button,
 	Container,
 	CssBaseline,
-	Grid,
-	Link,
-	Snackbar,
 	TextField,
 	Typography,
 } from "@mui/material";
+
 import MuiAlert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import authApi from "../api/authApi";
+import authApi, { authHelper } from "../api/authApi";
+import shopApi from "../api/shopApi";
 
-export const Register = () => {
+export const RegisterSeller = () => {
+	const navigate = useNavigate();
 	const [snackbarOpen, setSnackbarOpen] = useState(false);
 	const [snackbarMessage, setSnackbarMessage] = useState();
-	const [severity, setSeverity] = useState("");
-	const navigate = useNavigate();
+	const [severity, setSeverity] = useState("success");
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
-		const data = new FormData(event.currentTarget);
-
 		try {
-			const response = await authApi.register({
-				email: data.get("email"),
-				password: data.get("password"),
-				username: data.get("username"),
+			const data = new FormData(event.currentTarget);
+			const shopName = data.get("shopname");
+
+			const response = await shopApi.register({
+				accessToken: authHelper.getToken(),
+				shopName: shopName,
 			});
-			navigate("/auth/login");
+			setSnackbarMessage(response.data.message);
+			setSnackbarOpen(true);
+			setSeverity("success");
+
+			// create new token
+			const refresh = await authApi.refresh({
+				refreshToken: authHelper.getRefreshToken(),
+			});
+			const { accessToken } = refresh.data;
+			authHelper.setToken({ accessToken: accessToken });
+
+			const currentUser = authHelper.getUser();
+			navigate(`/shop_manager?supplier_id=${currentUser.id}`);
 		} catch (err) {
-			setSeverity("error");
 			setSnackbarMessage(err.response.data.message);
 			setSnackbarOpen(true);
+			setSeverity("error");
 		}
 	};
 
@@ -77,38 +87,18 @@ export const Register = () => {
 					alignItems: "center",
 				}}
 			>
-				<Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-					<LockOutlinedIcon />
-				</Avatar>
 				<Typography component="h1" variant="h5">
-					Register
+					Đăng kí làm người bán hàng
 				</Typography>
 				<Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 					<TextField
 						margin="normal"
 						required
 						fullWidth
-						id="username"
-						name="username"
-						label="User Name"
+						id="shopname"
+						label="Tên shop"
+						name="shopname"
 						autoFocus
-					/>
-					<TextField
-						margin="normal"
-						required
-						fullWidth
-						id="email"
-						name="email"
-						label="Email Address"
-					/>
-					<TextField
-						margin="normal"
-						required
-						fullWidth
-						label="Password"
-						type="password"
-						id="password"
-						name="password"
 					/>
 					<Button
 						type="submit"
@@ -116,20 +106,8 @@ export const Register = () => {
 						variant="contained"
 						sx={{ mt: 3, mb: 2 }}
 					>
-						Register
+						Đăng kí ngay
 					</Button>
-					<Grid container>
-						<Grid item xs>
-							<Link href="/auth/forgot-password" variant="body2">
-								Forgot password?
-							</Link>
-						</Grid>
-						<Grid item>
-							<Link href="/auth/login" variant="body2">
-								{"Already have an account? Login"}
-							</Link>
-						</Grid>
-					</Grid>
 				</Box>
 			</Box>
 		</Container>

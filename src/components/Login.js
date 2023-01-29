@@ -1,5 +1,6 @@
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { createTheme, ThemeProvider } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -9,26 +10,81 @@ import CssBaseline from "@mui/material/CssBaseline";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid";
 import Link from "@mui/material/Link";
+import Snackbar from "@mui/material/Snackbar";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import * as React from "react";
+import { forwardRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import authApi, { authHelper } from "../api/authApi";
+import userApi from "../api/userApi";
 
 const theme = createTheme();
 
 export const Login = () => {
-	const handleSubmit = (event) => {
+	const navigate = useNavigate();
+	const [snackbarOpen, setSnackbarOpen] = useState(false);
+	const [snackbarMessage, setSnackbarMessage] = useState();
+	const [severity, setSeverity] = useState("success");
+
+	const handleSubmit = async (event) => {
 		event.preventDefault();
-		const data = new FormData(event.currentTarget);
-		console.log({
-			email: data.get("email"),
-			password: data.get("password"),
-		});
+		try {
+			const data = new FormData(event.currentTarget);
+			let response = await authApi.login({
+				email: data.get("email"),
+				password: data.get("password"),
+			});
+
+			if (response.error) {
+				return;
+			}
+			const { accessToken, refreshToken } = response.data;
+			authHelper.setToken({ accessToken: accessToken });
+			authHelper.setRefresh({ refreshToken: refreshToken });
+
+			// get user infomation
+			response = await userApi.me({ accessToken });
+			authHelper.setUser({ user: response.data });
+
+			navigate("/");
+		} catch (err) {
+			setSeverity("error");
+			setSnackbarOpen(true);
+			setSnackbarMessage(err.response.data.message);
+		}
 	};
 
+	const vertical = "top";
+	const horizontal = "center";
+
+	const handleCloseSnackbar = (event, reason) => {
+		if (reason === "clickaway") {
+			return;
+		}
+		setSnackbarOpen(false);
+	};
+	const Alert = forwardRef(function Alert(props, ref) {
+		return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+	});
 	return (
 		<ThemeProvider theme={theme}>
-			<Container component="main" maxWidth="xs">
+			<Container component="main" maxWidth="xs" sx={{ minHeight: "100vh" }}>
 				<CssBaseline />
+
+				<Snackbar
+					open={snackbarOpen}
+					autoHideDuration={3000}
+					onClose={handleCloseSnackbar}
+					anchorOrigin={{ vertical, horizontal }}
+				>
+					<Alert
+						onClose={handleCloseSnackbar}
+						severity={severity}
+						sx={{ width: "100%" }}
+					>
+						{snackbarMessage}
+					</Alert>
+				</Snackbar>
 				<Box
 					sx={{
 						marginTop: 8,

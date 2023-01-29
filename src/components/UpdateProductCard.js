@@ -9,14 +9,23 @@ import {
 } from "@mui/material";
 import { Box } from "@mui/system";
 import * as React from "react";
-import { Link } from "react-router-dom";
 
-export default function EcommerceCard({ product }) {
+export const UpdateProductCard = ({
+	product,
+	setProductData,
+	setUpdateProductModalOpen,
+}) => {
 	if (product) {
-		return <ProductCard product={product} />;
+		return (
+			<ProductCard
+				product={product}
+				setProductData={setProductData}
+				setUpdateProductModalOpen={setUpdateProductModalOpen}
+			/>
+		);
 	}
 	return <SkeletonCard />;
-}
+};
 
 function convertToVndFormat(price) {
 	return parseInt(price).toLocaleString("vi-VN", {
@@ -43,14 +52,21 @@ const SkeletonCard = () => {
 	);
 };
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({
+	product,
+	setProductData,
+	setUpdateProductModalOpen,
+}) => {
 	return (
-		<Card variant="outlined" sx={{ height: "100%" }}>
-			<CardActionArea
-				component={Link}
-				to={`/product_detail?product_id=${product.productId}`}
-				sx={{ height: "100%" }}
-			>
+		<Card
+			variant="outlined"
+			sx={{ height: "100%" }}
+			onClick={() => {
+				setProductData(product);
+				setUpdateProductModalOpen(true);
+			}}
+		>
+			<CardActionArea sx={{ height: "100%" }}>
 				<CardMedia
 					component="img"
 					image={product.thumbnail}
@@ -103,6 +119,13 @@ const ProductCard = ({ product }) => {
 								Đã bán 0
 							</Typography>
 						</Box>
+						<Typography
+							variant="body2"
+							color="text.secondary"
+							sx={{ marginRight: "3px", fontSize: "12px" }}
+						>
+							Còn {product.inventory} sản phẩm
+						</Typography>
 						<Typography
 							component="div"
 							sx={{

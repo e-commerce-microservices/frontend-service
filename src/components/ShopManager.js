@@ -15,7 +15,7 @@ import {
 	Typography,
 } from "@mui/material";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import productApi from "../api/productApi";
 import shopApi from "../api/shopApi";
@@ -53,10 +53,6 @@ export const ShopManager = () => {
 	};
 	const handleCloseCreateProduct = () => {
 		setOpen(false);
-	};
-
-	const handleCloseUpdateProduct = () => {
-		setUpdateProductModalOpen(false);
 	};
 
 	return (
@@ -99,11 +95,6 @@ export const ShopManager = () => {
 				</Grid>
 			</Grid>
 			<CreateProduct open={open} handleClose={handleCloseCreateProduct} />
-			<UpdateProduct
-				open={updateProductModalOpen}
-				handleClose={handleCloseUpdateProduct}
-				product={productData}
-			/>
 		</XsContainer>
 	);
 };
@@ -244,89 +235,5 @@ const CreateProduct = ({ open, handleClose }) => {
 				</Box>
 			</Box>
 		</Modal>
-	);
-};
-
-const UpdateProduct = ({ open, handleClose, product }) => {
-	return (
-		<Modal
-			open={open}
-			onClose={handleClose}
-			aria-labelledby="parent-modal-title"
-			aria-describedby="parent-modal-description"
-		>
-			<UpdateProductData product={product} />
-		</Modal>
-	);
-};
-
-const UpdateProductData = ({ product }) => {
-	const handleSubmit = async (event) => {
-		event.preventDefault();
-
-		try {
-			// const data = new FormData(event.currentTarget);
-			// let response = await authApi.login({
-			// 	email: data.get("email"),
-			// 	password: data.get("password"),
-			// });
-			// if (response.error) {
-			// 	return;
-			// }
-			// const { accessToken, refreshToken } = response.data;
-			// authHelper.setToken({ accessToken: accessToken });
-			// authHelper.setRefresh({ refreshToken: refreshToken });
-		} catch (err) {
-			// setSeverity("error");
-			// setSnackbarOpen(true);
-			// setSnackbarMessage(err.response.data.message);
-		}
-	};
-
-	return (
-		<Box sx={{ ...style, width: 500 }}>
-			<Typography component="h1" variant="h5">
-				Cập nhật thông tin sản phẩm: {product.name}
-			</Typography>
-			<Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-				<TextField
-					margin="normal"
-					fullWidth
-					id="product_name"
-					label="Tên sản phẩm"
-					name="productName"
-					autoFocus
-				/>
-				<TextField
-					margin="normal"
-					fullWidth
-					id="product_price"
-					label="Giá cả sản phẩm"
-					name="productPrice"
-				/>
-				<TextField
-					margin="normal"
-					fullWidth
-					id="product_inventory"
-					label="Số lượng sản phẩm trong kho"
-					name="productInventory"
-				/>
-				<TextField
-					margin="normal"
-					fullWidth
-					id="product_brand"
-					label="Nhãn hàng"
-					name="productBrand"
-				/>
-				<Button
-					type="submit"
-					fullWidth
-					variant="contained"
-					sx={{ mt: 3, mb: 2 }}
-				>
-					Cập nhật
-				</Button>
-			</Box>
-		</Box>
 	);
 };

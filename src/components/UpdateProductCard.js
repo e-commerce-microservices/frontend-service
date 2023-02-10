@@ -13,11 +13,12 @@ import {
 import { Box } from "@mui/system";
 import * as React from "react";
 import { useState } from "react";
+import shopApi from "../api/shopApi";
 import EcommerceCard from "./Card";
 
-export const UpdateProductCard = ({ product }) => {
+export const UpdateProductCard = ({ product, setListProduct }) => {
 	if (product) {
-		return <ProductCard product={product} />;
+		return <ProductCard product={product} setListProduct={setListProduct} />;
 	}
 	return <SkeletonCard />;
 };
@@ -47,17 +48,22 @@ const SkeletonCard = () => {
 	);
 };
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, setListProduct }) => {
 	const [updateProductModalOpen, setUpdateProductModalOpen] = useState(false);
 	const [deleteProductModalOpen, setDeleteProductModalOpen] = useState(false);
 
-	const handleUpdateProduct = () => {
-		setUpdateProductModalOpen(true);
-		console.log("update");
-	};
-	const handleDeleteProduct = () => {
-		setDeleteProductModalOpen(true);
-		console.log("delete");
+	const handleDeleteProduct = async () => {
+		try {
+			await shopApi.deleteProduct({
+				productId: product.productId,
+			});
+			setListProduct((prev) => {
+				return prev.filter((prod) => prod.productId !== product.productId);
+			});
+			setDeleteProductModalOpen(false);
+		} catch (err) {
+			console.log(err);
+		}
 	};
 
 	return (
@@ -147,18 +153,18 @@ const ProductCard = ({ product }) => {
 									padding: "0px 10px",
 									textTransform: "none",
 								}}
-								onClick={handleUpdateProduct}
+								onClick={() => setUpdateProductModalOpen(true)}
 							>
 								Cập nhật
 							</Button>
 							<Button
+								onClick={() => setDeleteProductModalOpen(true)}
 								variant="outlined"
 								sx={{
 									fontSize: "13.5px",
 									padding: "0px 10px",
 									textTransform: "none",
 								}}
-								onClick={handleDeleteProduct}
 							>
 								Xóa
 							</Button>
@@ -172,6 +178,8 @@ const ProductCard = ({ product }) => {
 					setUpdateProductModalOpen(false);
 				}}
 				product={product}
+				setListProduct={setListProduct}
+				setUpdateProductModalOpen={setUpdateProductModalOpen}
 			/>
 			<DeleteProduct
 				open={deleteProductModalOpen}
@@ -179,6 +187,7 @@ const ProductCard = ({ product }) => {
 					setDeleteProductModalOpen(false);
 				}}
 				product={product}
+				handleDelete={handleDeleteProduct}
 			/>
 		</Card>
 	);
@@ -193,7 +202,7 @@ const UpdateProduct = React.forwardRef((props, ref) => {
 			aria-describedby="parent-modal-description"
 			ref={ref}
 		>
-			<UpdateProductData product={props.product} />
+			<UpdateProductData {...props} />
 		</Modal>
 	);
 });
@@ -203,21 +212,45 @@ const UpdateProductData = React.forwardRef((props, ref) => {
 		event.preventDefault();
 
 		try {
-			// const data = new FormData(event.currentTarget);
-			// let response = await authApi.login({
-			// 	email: data.get("email"),
-			// 	password: data.get("password"),
-			// });
-			// if (response.error) {
-			// 	return;
-			// }
-			// const { accessToken, refreshToken } = response.data;
-			// authHelper.setToken({ accessToken: accessToken });
-			// authHelper.setRefresh({ refreshToken: refreshToken });
+			const data = new FormData(event.currentTarget);
+			const productName =
+				data.get("productName").length > 0
+					? data.get("productName")
+					: props.product.name;
+			const productBrand =
+				data.get("productBrand").length > 0
+					? data.get("productBrand")
+					: props.product.brand;
+			const inv =
+				data.get("productInventory").length > 0
+					? data.get("productInventory")
+					: props.product.inventory;
+			const price =
+				data.get("productPrice").length > 0
+					? data.get("productPrice")
+					: props.product.price;
+
+			let response = await shopApi.updateProduct({
+				productName: productName,
+				productBrand: productBrand,
+				productInventory: inv,
+				productId: props.product.productId,
+				productPrice: price,
+			});
+			props.setListProduct((prev) => {
+				return prev.map((prod) => {
+					if (prod.productId === props.product.productId) {
+						prod.name = productName;
+						prod.brand = productBrand;
+						prod.inventory = inv;
+						prod.price = price;
+					}
+					return prod;
+				});
+			});
+			props.setUpdateProductModalOpen(false);
 		} catch (err) {
-			// setSeverity("error");
-			// setSnackbarOpen(true);
-			// setSnackbarMessage(err.response.data.message);
+			console.log(err);
 		}
 	};
 
@@ -301,7 +334,11 @@ const DeleteProductData = React.forwardRef((props, ref) => {
 	return (
 		<Box sx={{ ...style, width: 500, padding: "32px " }} ref={ref}>
 			<EcommerceCard product={props.product} />
-			<Button variant="contained" sx={{ width: "100%" }}>
+			<Button
+				variant="contained"
+				sx={{ width: "100%" }}
+				onClick={() => props.handleDelete()}
+			>
 				Xác nhận xóa
 			</Button>
 		</Box>

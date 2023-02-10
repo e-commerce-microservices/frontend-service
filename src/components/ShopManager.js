@@ -68,6 +68,7 @@ export const ShopManager = () => {
 							<Grid item xs={12} sm={6} md={3} lg={2} key={index}>
 								<UpdateProductCard
 									product={product}
+									setListProduct={setListProduct}
 									setProductData={setProductData}
 									setUpdateProductModalOpen={setUpdateProductModalOpen}
 								/>

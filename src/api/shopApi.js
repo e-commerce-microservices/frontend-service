@@ -4,7 +4,7 @@ import { axiosClient } from "./axiosClient";
 const shopApi = {
 	register({ accessToken, shopName }) {
 		const url = "/shop/register";
-		return axiosClient.post(
+		return axiosClient().post(
 			url,
 			{
 				name: shopName,
@@ -26,7 +26,7 @@ const shopApi = {
 	}) {
 		const url = "/shop/add-product";
 		let accessToken = authHelper.getToken();
-		return axiosClient.post(
+		return axiosClient().post(
 			url,
 			{
 				category_id: productCategory,
@@ -43,8 +43,28 @@ const shopApi = {
 			}
 		);
 	},
-	deleteProduct() {},
-	updateProduct() {},
+	deleteProduct({ productId }) {
+		const url = "/shop/delete";
+		return axiosClient().post(url, {
+			product_id: productId,
+		});
+	},
+	updateProduct({
+		productName,
+		productPrice,
+		productInventory,
+		productBrand,
+		productId,
+	}) {
+		const url = "/shop/update";
+		return axiosClient().post(url, {
+			product_id: productId,
+			name: productName,
+			price: productPrice,
+			inventory: productInventory,
+			brand: productBrand,
+		});
+	},
 };
 
 export default shopApi;

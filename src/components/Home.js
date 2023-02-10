@@ -26,7 +26,6 @@ export const Home = () => {
 				limit: 24,
 				offset: 24 * (page - 1),
 			});
-			console.log(response.data.listProduct);
 			setListProduct(response.data.listProduct);
 		};
 

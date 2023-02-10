@@ -31,7 +31,6 @@ export const ProductListing = () => {
 				offset: 24 * (page - 1),
 				categoryId: categoryId,
 			});
-			console.log(response);
 			setListProduct(response.data.listProduct);
 		};
 

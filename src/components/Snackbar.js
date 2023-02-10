@@ -1,10 +1,8 @@
 import MuiAlert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
-import { forwardRef, useState } from "react";
+import { forwardRef } from "react";
 
-export const SnackbarCustom = ({ vertical, horizontal }) => {
-	const [snackbarOpen, setSnackbarOpen] = useState(false);
-	const [snackbarMessage, setSnackbarMessage] = useState();
+export const SnackbarCustom = ({ open, setOpen, message, severity }) => {
 	const vertical = "top";
 	const horizontal = "center";
 
@@ -12,7 +10,7 @@ export const SnackbarCustom = ({ vertical, horizontal }) => {
 		if (reason === "clickaway") {
 			return;
 		}
-		setSnackbarOpen(false);
+		setOpen(false);
 	};
 	const Alert = forwardRef(function Alert(props, ref) {
 		return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -20,8 +18,8 @@ export const SnackbarCustom = ({ vertical, horizontal }) => {
 
 	return (
 		<Snackbar
-			open={snackbarOpen}
-			autoHideDuration={1000}
+			open={open}
+			autoHideDuration={2000}
 			onClose={handleCloseSnackbar}
 			anchorOrigin={{ vertical, horizontal }}
 		>
@@ -30,7 +28,7 @@ export const SnackbarCustom = ({ vertical, horizontal }) => {
 				severity="success"
 				sx={{ width: "100%" }}
 			>
-				{snackbarMessage}
+				{message}
 			</Alert>
 		</Snackbar>
 	);

@@ -3,15 +3,15 @@ import { axiosClient } from "./axiosClient";
 const authApi = {
 	register({ username, email, password }) {
 		const url = "/auth/register";
-		return axiosClient.post(url, { username, email, password });
+		return axiosClient().post(url, { username, email, password });
 	},
 	login({ email, password }) {
 		const url = "/auth/login";
-		return axiosClient.post(url, { email, password });
+		return axiosClient().post(url, { email, password });
 	},
 	refresh({ refreshToken }) {
 		const url = "/auth/refresh";
-		return axiosClient.post(url, { refreshToken });
+		return axiosClient().post(url, { refreshToken });
 	},
 };
 

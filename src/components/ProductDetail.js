@@ -1,22 +1,19 @@
-import StarIcon from "@mui/icons-material/Star";
-import {
-	Avatar,
-	Button,
-	ButtonGroup,
-	Grid,
-	Rating,
-	Typography,
-} from "@mui/material";
+import { Button, ButtonGroup, Grid, Rating, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { cartApi } from "../api/cartApi";
 import productApi from "../api/productApi";
+import Comment from "./Comment";
 import { XsContainer } from "./Layout";
+import { SnackbarCustom } from "./Snackbar";
 
 export default function ProductDetail() {
 	const theme = useTheme();
 	const [product, setProduct] = useState();
+	const [snackBarMessage, setSnackBarMessage] = useState("");
+	const [snackBarOpen, setSnackBarOpen] = useState(false);
 
 	const search = useLocation().search;
 	useEffect(() => {
@@ -25,7 +22,6 @@ export default function ProductDetail() {
 				const productId = new URLSearchParams(search).get("product_id");
 				const response = await productApi.detail({ productId: productId });
 				setProduct(response.data);
-				console.log(response.data);
 			};
 			fetchProduct();
 		} catch (err) {
@@ -34,7 +30,12 @@ export default function ProductDetail() {
 	}, []);
 
 	return (
-		<XsContainer marginTop={theme.spacing(2)}>
+		<XsContainer marginTop={theme.spacing(2)} marginBottom={theme.spacing(10)}>
+			<SnackbarCustom
+				open={snackBarOpen}
+				setOpen={setSnackBarOpen}
+				message={snackBarMessage}
+			/>
 			{product ? (
 				<>
 					<Grid
@@ -49,7 +50,11 @@ export default function ProductDetail() {
 							<Thumbnail src={product.thumbnail} alt={product.name} />
 						</Grid>
 						<Grid item xs={12} md={7}>
-							<Description product={product} />
+							<Description
+								product={product}
+								setSnackBarMessage={setSnackBarMessage}
+								setSnackBarOpen={setSnackBarOpen}
+							/>
 						</Grid>
 					</Grid>
 					<Grid
@@ -61,7 +66,7 @@ export default function ProductDetail() {
 							borderRadius: "5px",
 						}}
 					>
-						{/* <Comment /> */}
+						<Comment />
 					</Grid>
 				</>
 			) : (
@@ -83,7 +88,19 @@ const Thumbnail = ({ src, alt }) => {
 	);
 };
 
-const Description = ({ product }) => {
+const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
+	const [productCount, setProductCount] = useState(1);
+
+	const handleCart = async () => {
+		const response = await cartApi.create({
+			productId: product.productId,
+			quantity: productCount,
+		});
+
+		setSnackBarMessage(response.data.message);
+		setSnackBarOpen(true);
+	};
+
 	return (
 		<Box sx={{ display: "flex", flexDirection: "column", paddingTop: "16px" }}>
 			<Box sx={{ display: "flex" }}>
@@ -162,18 +179,26 @@ const Description = ({ product }) => {
 					>
 						<Box sx={{ display: "flex", flexDirection: "column" }}>
 							<Typography variant="body2" sx={{ fontSize: "16px" }}>
-								Số Lượng
+								Số Lượng ( Trong kho: {product.inventory} )
 							</Typography>
 
 							<ButtonGroup sx={{ marginTop: "8px" }}>
 								<Button
 									sx={{ height: "30px", width: "30px", fontSize: "24px" }}
+									onClick={() => {
+										if (productCount > 1) {
+											setProductCount(productCount - 1);
+										}
+									}}
 								>
 									-
 								</Button>
-								<Button sx={{ height: "30px", width: "30px" }}>1</Button>
+								<Button sx={{ height: "30px", width: "30px" }}>
+									{productCount}
+								</Button>
 								<Button
 									sx={{ height: "30px", width: "30px", fontSize: "24px" }}
+									onClick={() => setProductCount(productCount + 1)}
 								>
 									+
 								</Button>
@@ -184,13 +209,14 @@ const Description = ({ product }) => {
 								variant="contained"
 								disableElevation
 								sx={{ width: "240px", height: "42px" }}
+								onClick={handleCart}
 							>
-								Chọn Mua
+								Thêm vào giỏ hàng
 							</Button>
 						</Box>
 					</Box>
 				</Grid>
-				<Grid
+				{/* <Grid
 					item
 					xs={4}
 					sx={{
@@ -294,56 +320,8 @@ const Description = ({ product }) => {
 						</Box>
 						<Box></Box>
 					</Box>
-				</Grid>
+				</Grid> */}
 			</Grid>
-		</Box>
-	);
-};
-
-const Comment = ({ comment }) => {
-	return (
-		<Grid container>
-			<Grid item xs={12} md={4}>
-				<Box sx={{ display: "flex", flexDirection: "column" }}>
-					<Box sx={{ display: "flex" }}>
-						<Avatar>NT</Avatar>
-						<Box>
-							<Typography variant="body1">Ngoc TD</Typography>
-							<Typography variant="body2">Đã tham gia 4 năm trước</Typography>
-						</Box>
-					</Box>
-					<Box>
-						<Typography>Đã viết: 11 đánh giá</Typography>
-					</Box>
-					<Box>
-						<Typography>Đã nhận: 3 lượt cảm ơn</Typography>
-					</Box>
-				</Box>
-			</Grid>
-			<Grid item xs={12} md={8}>
-				{/* <CommentImage /> */}
-			</Grid>
-		</Grid>
-	);
-};
-
-const CommentImage = ({ comment }) => {
-	return (
-		<Box sx={{ display: "flex", flexDirection: "column" }}>
-			<Box>
-				<Box sx={{ display: "flex", alignItems: "center" }}>
-					<Box sx={{ display: "flex", alignItems: "center" }}>
-						<Rating readOnly value={5} size="small" />
-					</Box>
-					<Typography
-						sx={{ marginLeft: "4px", fontSize: "14px" }}
-						variant="body2"
-						color="text.secondary"
-					>
-						Cực kì hài lòng
-					</Typography>
-				</Box>
-			</Box>
 		</Box>
 	);
 };

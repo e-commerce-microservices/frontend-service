@@ -13,6 +13,7 @@ import { forwardRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import authApi, { authHelper } from "../api/authApi";
 import shopApi from "../api/shopApi";
+import userApi from "../api/userApi";
 
 export const RegisterSeller = () => {
 	const navigate = useNavigate();
@@ -30,19 +31,32 @@ export const RegisterSeller = () => {
 				accessToken: authHelper.getToken(),
 				shopName: shopName,
 			});
-			setSnackbarMessage(response.data.message);
-			setSnackbarOpen(true);
-			setSeverity("success");
-
-			// create new token
-			const refresh = await authApi.refresh({
-				refreshToken: authHelper.getRefreshToken(),
-			});
-			const { accessToken } = refresh.data;
-			authHelper.setToken({ accessToken: accessToken });
-
+			console.log(response);
 			const currentUser = authHelper.getUser();
-			navigate(`/shop_manager?supplier_id=${currentUser.id}`);
+			// navigate(`/shop_manager?supplier_id=${currentUser.id}`);
+			console.log(currentUser);
+			if (response.status === 200) {
+				setSnackbarMessage(response.data.message);
+				setSnackbarOpen(true);
+				setSeverity("success");
+
+				// create new token
+				const refresh = await authApi.refresh({
+					refreshToken: authHelper.getRefreshToken(),
+				});
+				const { accessToken } = refresh.data;
+				authHelper.setToken({ accessToken: accessToken });
+				const user = await userApi.me({ accessToken });
+				authHelper.setUser({ user: user.data });
+				const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+				await delay(2000);
+
+				navigate("/");
+			} else {
+				setSnackbarMessage(response.response.data.message);
+				setSnackbarOpen(true);
+				setSeverity("error");
+			}
 		} catch (err) {
 			setSnackbarMessage(err.response.data.message);
 			setSnackbarOpen(true);

@@ -4,7 +4,7 @@ import { axiosClient } from "./axiosClient";
 const shopApi = {
 	register({ accessToken, shopName }) {
 		const url = "/shop/register";
-		return axiosClient().post(
+		return axiosClient.post(
 			url,
 			{
 				name: shopName,
@@ -21,12 +21,13 @@ const shopApi = {
 		productPrice,
 		productInventory,
 		productCategory,
-		productBrand,
 		productThumbnail,
+		productDesc,
+		productBrand,
 	}) {
 		const url = "/shop/add-product";
 		let accessToken = authHelper.getToken();
-		return axiosClient().post(
+		return axiosClient.post(
 			url,
 			{
 				category_id: productCategory,
@@ -34,6 +35,7 @@ const shopApi = {
 				price: productPrice,
 				thumbnailDataChunk: productThumbnail,
 				inventory: productInventory,
+				desc: productDesc,
 				brand: productBrand,
 			},
 			{
@@ -45,9 +47,17 @@ const shopApi = {
 	},
 	deleteProduct({ productId }) {
 		const url = "/shop/delete";
-		return axiosClient().post(url, {
-			product_id: productId,
-		});
+		return axiosClient.post(
+			url,
+			{
+				product_id: productId,
+			},
+			{
+				headers: {
+					authorization: authHelper.getToken(),
+				},
+			}
+		);
 	},
 	updateProduct({
 		productName,
@@ -57,13 +67,39 @@ const shopApi = {
 		productId,
 	}) {
 		const url = "/shop/update";
-		return axiosClient().post(url, {
-			product_id: productId,
-			name: productName,
-			price: productPrice,
-			inventory: productInventory,
-			brand: productBrand,
-		});
+		return axiosClient.post(
+			url,
+			{
+				product_id: productId,
+				name: productName,
+				price: productPrice,
+				inventory: productInventory,
+				brand: productBrand,
+			},
+			{
+				headers: {
+					authorization: authHelper.getToken(),
+				},
+			}
+		);
+	},
+	getShop({ shopId }) {
+		const url = "/shop/get";
+		return axiosClient.post(url, { shop_id: shopId });
+	},
+	updateShopName({ name }) {
+		const url = "/shop/update-shop-name";
+		return axiosClient.post(
+			url,
+			{
+				name: name,
+			},
+			{
+				headers: {
+					authorization: authHelper.getToken(),
+				},
+			}
+		);
 	},
 };
 

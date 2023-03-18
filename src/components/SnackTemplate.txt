@@ -1,0 +1,39 @@
+import MuiAlert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
+import { forwardRef, useState } from "react";
+import { XsContainer } from "./Layout";
+
+export const UserProfile = () => {
+	const [snackBarMessage, setSnackBarMessage] = useState("");
+	const [snackBarOpen, setSnackBarOpen] = useState(false);
+	const [severity, setSeverity] = useState("success");
+	const handleCloseSnackbar = (event, reason) => {
+		if (reason === "clickaway") {
+			return;
+		}
+		setSnackBarOpen(false);
+	};
+	const Alert = forwardRef(function Alert(props, ref) {
+		return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+	});
+
+	return (
+		<XsContainer marginTop="16px" marginBottom="32px">
+			<Snackbar
+				open={snackBarOpen}
+				autoHideDuration={3000}
+				onClose={handleCloseSnackbar}
+				anchorOrigin={{ vertical: "top", horizontal: "center" }}
+			>
+				<Alert
+					onClose={handleCloseSnackbar}
+					severity={severity}
+					sx={{ width: "100%" }}
+				>
+					{snackBarMessage}
+				</Alert>
+			</Snackbar>
+			UserProfile
+		</XsContainer>
+	);
+};

@@ -6,17 +6,15 @@ function getToken() {
 	return token;
 }
 
-export const axiosClient = () => {
-	return axios.create({
-		baseURL: "http://192.168.49.2:30100",
-		headers: {
-			"Content-Type": "application/json",
-			authorization: getToken(),
-		},
-	});
-};
+export const axiosClient = axios.create({
+	baseURL: "http://192.168.49.2:30100",
+	headers: {
+		"Content-Type": "application/json",
+		// authorization: getToken(),
+	},
+});
 
-axiosClient().interceptors.request.use(
+axiosClient.interceptors.request.use(
 	function (config) {
 		return config;
 	},
@@ -25,11 +23,11 @@ axiosClient().interceptors.request.use(
 	}
 );
 
-axiosClient().interceptors.response.use(
+axiosClient.interceptors.response.use(
 	(response) => response,
 	async (error) => {
 		const prevRequest = error?.config;
-		if (error?.response?.status === 401 && !prevRequest?.sent) {
+		if (error?.response?.status === 403 && !prevRequest?.sent) {
 			prevRequest.sent = true;
 			const response = await authApi.refresh({
 				refreshToken: authHelper.getRefreshToken(),
@@ -39,5 +37,6 @@ axiosClient().interceptors.response.use(
 			prevRequest.headers["Authorization"] = response.data.accessToken;
 			return axios(prevRequest);
 		}
+		return error;
 	}
 );

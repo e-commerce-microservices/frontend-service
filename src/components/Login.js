@@ -35,21 +35,24 @@ export const Login = () => {
 				password: data.get("password"),
 			});
 
-			if (response.error) {
-				return;
+			if (response.status === 200) {
+				const { accessToken, refreshToken } = response.data;
+				authHelper.setToken({ accessToken: accessToken });
+				authHelper.setRefresh({ refreshToken: refreshToken });
+
+				// get user infomation
+				response = await userApi.me({ accessToken });
+				authHelper.setUser({ user: response.data });
+				navigate("/");
+			} else {
+				setSeverity("error");
+				setSnackbarOpen(true);
+				setSnackbarMessage(response.response.data.message);
 			}
-			const { accessToken, refreshToken } = response.data;
-			authHelper.setToken({ accessToken: accessToken });
-			authHelper.setRefresh({ refreshToken: refreshToken });
-
-			// get user infomation
-			response = await userApi.me({ accessToken });
-			authHelper.setUser({ user: response.data });
-
-			navigate("/");
 		} catch (err) {
 			setSeverity("error");
 			setSnackbarOpen(true);
+			console.log(err);
 			setSnackbarMessage(err.response.data.message);
 		}
 	};

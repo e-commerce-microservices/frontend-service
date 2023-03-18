@@ -1,19 +1,28 @@
+import { authHelper } from "./authApi";
 import { axiosClient } from "./axiosClient";
 
 export const commentApi = {
 	listing({ productId }) {
 		const url = "/review/get-by-product-id";
-		return axiosClient().post(url, {
+		return axiosClient.post(url, {
 			product_id: productId,
 		});
 	},
 	create({ productId, content, imageDataChunk, numStar }) {
 		const url = "/review/create";
-		return axiosClient().post(url, {
-			product_id: productId,
-			content: content,
-			image_data_chunk: imageDataChunk,
-			num_star: numStar,
-		});
+		return axiosClient.post(
+			url,
+			{
+				product_id: productId,
+				content: content,
+				image_data_chunk: imageDataChunk,
+				num_star: numStar,
+			},
+			{
+				headers: {
+					authorization: authHelper.getToken(),
+				},
+			}
+		);
 	},
 };

@@ -8,13 +8,15 @@ import {
 	ImageListItem,
 	Modal,
 	Rating,
+	Snackbar,
 	Stack,
 	TextField,
 	Typography,
 } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 import { useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { commentApi } from "../api/commentApi";
 import userApi from "../api/userApi";
@@ -24,6 +26,10 @@ export default function Comment() {
 	const theme = useTheme();
 	const [listComment, setListComment] = useState([]);
 	const [listUser, setListUser] = useState([]);
+	const [reload, setReload] = useState(false);
+	const [snackbarOpen, setSnackbarOpen] = useState(false);
+	const [snackbarMessage, setSnackbarMessage] = useState();
+	const [severity, setSeverity] = useState("");
 
 	const search = useLocation().search;
 	useEffect(() => {
@@ -42,10 +48,35 @@ export default function Comment() {
 		} catch (err) {
 			console.log(err);
 		}
-	}, []);
+	}, [reload]);
+	const handleCloseSnackbar = (event, reason) => {
+		if (reason === "clickaway") {
+			return;
+		}
+		setSnackbarOpen(false);
+	};
+	const vertical = "top";
+	const horizontal = "center";
 
+	const Alert = forwardRef(function Alert(props, ref) {
+		return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+	});
 	return (
 		<XsContainer marginTop={theme.spacing(2)}>
+			<Snackbar
+				open={snackbarOpen}
+				autoHideDuration={2000}
+				onClose={handleCloseSnackbar}
+				anchorOrigin={{ vertical, horizontal }}
+			>
+				<Alert
+					onClose={handleCloseSnackbar}
+					severity={severity}
+					sx={{ width: "100%" }}
+				>
+					{snackbarMessage}
+				</Alert>
+			</Snackbar>
 			{listComment.length === 0 ? (
 				<EmptyComment />
 			) : (
@@ -60,6 +91,10 @@ export default function Comment() {
 			<AddComment
 				productId={new URLSearchParams(search).get("product_id")}
 				setListComment={setListComment}
+				setReload={setReload}
+				setSnackbarOpen={setSnackbarOpen}
+				setSnackbarMessage={setSnackbarMessage}
+				setSeverity={setSeverity}
 			/>
 		</XsContainer>
 	);
@@ -165,14 +200,15 @@ const CommentDetail = ({ comment }) => {
 			>
 				{comment.content}
 			</Typography>
-			<ImageList sx={{ height: 250, marginTop: "12px" }} cols={4}>
+			<ImageList sx={{ maxHeight: 250, marginTop: "12px" }} cols={4}>
 				{comment.imageUrl.map((item) => (
-					<ImageListItem key={item}>
+					<ImageListItem key={item} sx={{ padding: "10px" }}>
 						<img
 							src={`${item}?w=164&h=164&fit=crop&auto=format`}
 							srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
 							alt={"comment user"}
 							loading="lazy"
+							style={{ height: 200 }}
 						/>
 					</ImageListItem>
 				))}
@@ -181,7 +217,14 @@ const CommentDetail = ({ comment }) => {
 	);
 };
 
-const AddComment = ({ productId, setListComment }) => {
+const AddComment = ({
+	productId,
+	setListComment,
+	setReload,
+	setSeverity,
+	setSnackbarOpen,
+	setSnackbarMessage,
+}) => {
 	const [ratingReview, setRatingReview] = useState();
 	const [openPopup, setOpenPopup] = useState(false);
 	const [content, setContent] = useState("");
@@ -189,18 +232,21 @@ const AddComment = ({ productId, setListComment }) => {
 
 	const handlePostComment = () => {
 		const fetch = async () => {
-			console.log(productImage);
-			await commentApi.create({
+			const response = await commentApi.create({
 				productId: productId,
 				content: content,
 				numStar: ratingReview,
 				imageDataChunk: productImage,
 			});
-			setListComment((prev) => {
-				return [...prev];
-			});
 			setOpenPopup(false);
 			setProductImage([]);
+			if (response.status === 200) {
+				setReload((prev) => !prev);
+			} else {
+				setSeverity("error");
+				setSnackbarOpen(true);
+				setSnackbarMessage(response.response.data.message);
+			}
 		};
 		fetch();
 	};
@@ -218,8 +264,14 @@ const AddComment = ({ productId, setListComment }) => {
 			<Button
 				color="primary"
 				fullWidth
-				variant="outlined"
+				variant="contained"
 				onClick={() => setOpenPopup(true)}
+				// disabled={() => {
+				// 	if (authHelper.getUser() != null) {
+				// 		return false;
+				// 	}
+				// 	return true;
+				// }}
 			>
 				Thêm nhận xét
 			</Button>
@@ -266,11 +318,18 @@ const AddComment = ({ productId, setListComment }) => {
 						</Grid>
 						<Grid item container style={{ width: 430 }}>
 							<TextField
-								label="Content"
+								label="Nhận xét"
 								fullWidth
 								style={{ margin: "10px 0" }}
 								onChange={(e) => setContent(e.target.value)}
 							/>
+							<Box sx={{ display: "flex" }}>
+								{productImage.map((el) => (
+									<Box sx={{ maxWidth: "100px" }}>
+										<img src={el} style={{ width: "100px", height: "100px" }} />
+									</Box>
+								))}
+							</Box>
 							<Stack
 								direction="row"
 								alignItems="center"
@@ -280,9 +339,13 @@ const AddComment = ({ productId, setListComment }) => {
 								<Button
 									variant="outlined"
 									component="label"
-									sx={{ textTransform: "none" }}
+									sx={{
+										textTransform: "none",
+										width: "100px",
+										height: "100px",
+									}}
 								>
-									Ảnh sản phẩm
+									Thêm ảnh
 									<input
 										hidden
 										accept="image/*"
@@ -306,6 +369,7 @@ const AddComment = ({ productId, setListComment }) => {
 								fullWidth
 								variant="contained"
 								onClick={handlePostComment}
+								sx={{ marginTop: "20px" }}
 							>
 								Thêm ngay
 							</Button>

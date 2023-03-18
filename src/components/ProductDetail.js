@@ -1,8 +1,8 @@
-import { Button, ButtonGroup, Grid, Rating, Typography } from "@mui/material";
+import { Button, ButtonGroup, Grid, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Box } from "@mui/system";
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cartApi } from "../api/cartApi";
 import productApi from "../api/productApi";
 import Comment from "./Comment";
@@ -82,7 +82,8 @@ const Thumbnail = ({ src, alt }) => {
 			<img
 				src={src.replace("280x280", "750x750")}
 				alt={alt}
-				style={{ maxWidth: "100%" }}
+				// style={{ width: "100%" }}
+				style={{ height: 540, width: 540 }}
 			/>
 		</Box>
 	);
@@ -90,12 +91,26 @@ const Thumbnail = ({ src, alt }) => {
 
 const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 	const [productCount, setProductCount] = useState(1);
+	const [user, setUser] = useState({});
 
+	useEffect(() => {
+		const fetch = async () => {
+			setUser(await JSON.parse(localStorage.getItem("user")));
+		};
+		fetch();
+	}, []);
+
+	const navigate = useNavigate();
 	const handleCart = async () => {
+		if (user == null) {
+			navigate("/auth/login");
+			return;
+		}
 		const response = await cartApi.create({
 			productId: product.productId,
 			quantity: productCount,
 		});
+		console.log(response);
 
 		setSnackBarMessage(response.data.message);
 		setSnackBarOpen(true);
@@ -123,7 +138,7 @@ const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 				{product.name}
 			</Typography>
 			<Box sx={{ display: "flex", alignItems: "center" }}>
-				<Rating readOnly value={5} size="small" />
+				{/* <Rating readOnly value={5} size="small" />
 				<Typography
 					sx={{
 						fontSize: "14px",
@@ -142,8 +157,8 @@ const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 						backgroundColor: "rgb(199, 199, 199)",
 						margin: "0px 5px",
 					}}
-				></Box>
-				<Typography
+				></Box> */}
+				{/* <Typography
 					sx={{
 						fontSize: "14px",
 						fontWeight: "400",
@@ -152,7 +167,45 @@ const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 					}}
 				>
 					Đã bán 0
+				</Typography> */}
+				<Typography
+					sx={{
+						fontSize: "14px",
+						fontWeight: "400",
+						paddingLeft: "5px",
+						color: "#757575",
+						textDecoration: "none",
+					}}
+					component={Link}
+					to={`/view-shop?supplier=${product.supplierId}`}
+				>
+					Xem cửa hàng
 				</Typography>
+				{user != null && user.id != product.supplierId && (
+					<>
+						<Box
+							sx={{
+								width: "1px",
+								height: "12px",
+								backgroundColor: "rgb(199, 199, 199)",
+								margin: "0px 5px",
+							}}
+						></Box>
+						<Typography
+							sx={{
+								fontSize: "14px",
+								fontWeight: "400",
+								paddingLeft: "5px",
+								color: "#757575",
+								textDecoration: "none",
+							}}
+							component={Link}
+							to={`/chat?supplier=${product.supplierId}`}
+						>
+							Trò chuyện
+						</Typography>
+					</>
+				)}
 			</Box>
 			<Grid container sx={{ marginTop: "16px" }}>
 				<Grid item xs={8} sx={{ paddingRight: "12px" }}>
@@ -178,6 +231,9 @@ const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 						sx={{ display: "flex", flexDirection: "column", marginTop: "16px" }}
 					>
 						<Box sx={{ display: "flex", flexDirection: "column" }}>
+							<Typography variant="body2" sx={{ fontSize: "16px" }}>
+								Mô tả sản phẩm: {product.desc}
+							</Typography>
 							<Typography variant="body2" sx={{ fontSize: "16px" }}>
 								Số Lượng ( Trong kho: {product.inventory} )
 							</Typography>
@@ -209,6 +265,9 @@ const Description = ({ product, setSnackBarMessage, setSnackBarOpen }) => {
 								variant="contained"
 								disableElevation
 								sx={{ width: "240px", height: "42px" }}
+								disabled={
+									user != null && user.id == product.supplierId ? true : false
+								}
 								onClick={handleCart}
 							>
 								Thêm vào giỏ hàng

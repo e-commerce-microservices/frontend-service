@@ -55,6 +55,7 @@ const ProductCard = ({ product }) => {
 					component="img"
 					image={product.thumbnail}
 					alt={product.name}
+					sx={{ maxHeight: "200px" }}
 				/>
 				<CardContent sx={{ padding: "4px 12px 12px 12px" }}>
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -84,7 +85,7 @@ const ProductCard = ({ product }) => {
 								color="text.secondary"
 								sx={{ marginRight: "3px" }}
 							>
-								0
+								{product.starAverage}
 							</Typography>
 							<StarIcon sx={{ color: "#ffca28", width: "16px" }} />
 							<Box
@@ -100,7 +101,7 @@ const ProductCard = ({ product }) => {
 								color="text.secondary"
 								sx={{ marginRight: "3px" }}
 							>
-								Đã bán 0
+								Đã bán {product.totalSold}
 							</Typography>
 						</Box>
 						<Typography

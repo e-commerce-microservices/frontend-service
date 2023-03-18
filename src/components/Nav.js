@@ -3,7 +3,8 @@ import HomeIcon from "@mui/icons-material/Home";
 import LoginIcon from "@mui/icons-material/Login";
 import MailIcon from "@mui/icons-material/Mail";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+// import NotificationsIcon from "@mui/icons-material/Notifications";
+import MessageIcon from "@mui/icons-material/Message";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import AppBar from "@mui/material/AppBar";
@@ -28,15 +29,15 @@ export default function NavBar() {
 	const navigate = useNavigate();
 
 	// get data from localStorage
-	const [currentUser, setCurrentUser] = React.useState(authHelper.getUser());
-	React.useEffect(() => {
-		const interval = setInterval(() => {
-			const currentUser = authHelper.getUser();
-			setCurrentUser(currentUser);
-		}, 2000);
+	// const [currentUser, setCurrentUser] = React.useState(authHelper.getUser());
+	// React.useEffect(() => {
+	// 	const interval = setInterval(() => {
+	// 		const currentUser = authHelper.getUser();
+	// 		setCurrentUser(currentUser);
+	// 	}, 2000);
 
-		return () => clearInterval(interval);
-	}, []);
+	// 	return () => clearInterval(interval);
+	// }, []);
 
 	const handleProfileMenuOpen = (event) => {
 		setAnchorEl(event.currentTarget);
@@ -54,7 +55,7 @@ export default function NavBar() {
 	const handleMenuCloseAndLogout = () => {
 		handleMenuClose();
 		authHelper.logOut();
-		setCurrentUser(null);
+		// setCurrentUser(null);
 		navigate("/");
 	};
 
@@ -79,6 +80,9 @@ export default function NavBar() {
 			open={isMenuOpen}
 			onClose={handleMenuClose}
 		>
+			<MenuItem onClick={handleMenuClose} component={Link} to="/orders-manage">
+				Quản lý đơn hàng
+			</MenuItem>
 			<MenuItem onClick={handleMenuClose} component={Link} to="/user-profile">
 				Quản lý thông tin cá nhân
 			</MenuItem>
@@ -118,10 +122,10 @@ export default function NavBar() {
 					color="inherit"
 				>
 					<Badge badgeContent={17} color="error">
-						<NotificationsIcon />
+						<MessageIcon />
 					</Badge>
 				</IconButton>
-				<p>Notifications</p>
+				<p>Message</p>
 			</MenuItem>
 			<MenuItem>
 				<IconButton
@@ -129,9 +133,10 @@ export default function NavBar() {
 					aria-label="show 17 new notifications"
 					color="inherit"
 				>
-					<Badge badgeContent={17} color="error">
+					{/* <Badge badgeContent={17} color="error">
 						<ShoppingCartIcon />
-					</Badge>
+					</Badge> */}
+					<ShoppingCartIcon />
 				</IconButton>
 				<p>Cart</p>
 			</MenuItem>
@@ -172,12 +177,12 @@ export default function NavBar() {
 					</Typography>
 					<Search />
 					<Box sx={{ flexGrow: 1 }} />
-					{currentUser != null ? (
+					{authHelper.getUser() != null ? (
 						<AuthenticatedUser
 							menuId={menuId}
 							handleProfileMenuOpen={handleProfileMenuOpen}
-							userId={currentUser.id}
-							userRole={currentUser.role}
+							// userId={currentUser.id}
+							// userRole={currentUser.role}
 						/>
 					) : (
 						<IconButton
@@ -210,23 +215,18 @@ export default function NavBar() {
 	);
 }
 
-const AuthenticatedUser = ({
-	menuId,
-	handleProfileMenuOpen,
-	userId,
-	userRole,
-}) => {
+const AuthenticatedUser = ({ menuId, handleProfileMenuOpen }) => {
 	return (
 		<Box sx={{ display: { xs: "none", md: "flex" } }}>
 			<IconButton color="inherit" size="large" component={Link} to="/">
 				<HomeIcon />
 			</IconButton>
-			{(userRole === "supplier" || userRole === "admin") && (
+			{authHelper.isSupplier() && (
 				<IconButton
 					color="inherit"
 					size="large"
 					component={Link}
-					to={`/manage_shop?supplier_id=${userId}`}
+					to={`/manage_shop?supplier_id=${authHelper.getUser().id}`}
 				>
 					<StorefrontIcon />
 				</IconButton>
@@ -237,11 +237,12 @@ const AuthenticatedUser = ({
 				aria-label="show 17 new notifications"
 				color="inherit"
 				component={Link}
-				to="/notifications"
+				to="/chat"
 			>
-				<Badge badgeContent={17} color="error">
+				{/* <Badge badgeContent={17} color="error">
 					<NotificationsIcon />
-				</Badge>
+				</Badge> */}
+				<MessageIcon />
 			</IconButton>
 			<IconButton size="large" color="inherit" component={Link} to="/carts">
 				<ShoppingCartIcon />

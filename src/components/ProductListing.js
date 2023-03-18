@@ -2,7 +2,6 @@ import {
 	Box,
 	Grid,
 	List,
-	ListItemButton,
 	ListSubheader,
 	Pagination,
 	Rating,
@@ -84,11 +83,11 @@ const Filter = () => {
 				aria-labelledby="nested-list-subheader"
 				subheader={
 					<ListSubheader component="div" id="nested-list-subheader">
-						Đánh giá
+						Danh sách sản phẩm
 					</ListSubheader>
 				}
 			>
-				<ListItemButton>
+				{/* <ListItemButton>
 					<StarFilter value={5} />
 				</ListItemButton>
 				<ListItemButton>
@@ -96,9 +95,9 @@ const Filter = () => {
 				</ListItemButton>
 				<ListItemButton>
 					<StarFilter value={3} />
-				</ListItemButton>
+				</ListItemButton> */}
 			</List>
-			<List
+			{/* <List
 				sx={{ width: "100%", bgcolor: "background.paper" }}
 				component="nav"
 				aria-labelledby="nested-list-subheader"
@@ -145,7 +144,7 @@ const Filter = () => {
 				<ListItemButton>
 					<ConstPriceFilter value="Nhận xét nhiều nhất" />
 				</ListItemButton>
-			</List>
+			</List> */}
 		</Box>
 	);
 };

@@ -25,6 +25,7 @@ export const Register = () => {
 	const handleSubmit = async (event) => {
 		event.preventDefault();
 		const data = new FormData(event.currentTarget);
+		const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 		try {
 			const response = await authApi.register({
@@ -32,7 +33,19 @@ export const Register = () => {
 				password: data.get("password"),
 				username: data.get("username"),
 			});
-			navigate("/auth/login");
+			console.log(response);
+			if (response.status == 200) {
+				setSeverity("success");
+				setSnackbarMessage("Đăng kí thành công, vui lòng đăng nhập để sử dụng");
+				setSnackbarOpen(true);
+				await delay(2000);
+
+				navigate("/auth/login");
+			} else {
+				setSeverity("error");
+				setSnackbarMessage(response.response.data.message);
+				setSnackbarOpen(true);
+			}
 		} catch (err) {
 			setSeverity("error");
 			setSnackbarMessage(err.response.data.message);

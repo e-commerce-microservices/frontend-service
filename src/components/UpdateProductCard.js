@@ -13,6 +13,7 @@ import {
 import { Box } from "@mui/system";
 import * as React from "react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import shopApi from "../api/shopApi";
 import EcommerceCard from "./Card";
 
@@ -73,6 +74,7 @@ const ProductCard = ({ product, setListProduct }) => {
 					component="img"
 					image={product.thumbnail}
 					alt={product.name}
+					style={{ width: 200, height: 150 }}
 				/>
 				<CardContent sx={{ padding: "4px 12px 12px 12px" }}>
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
@@ -87,7 +89,10 @@ const ProductCard = ({ product, setListProduct }) => {
 								WebkitBoxOrient: "vertical",
 								fontSize: "12px",
 								height: "35px",
+								textDecoration: "none",
 							}}
+							component={Link}
+							to={`/product_detail?product_id=${product.productId}`}
 						>
 							{product.name}
 						</Typography>
@@ -102,7 +107,7 @@ const ProductCard = ({ product, setListProduct }) => {
 								color="text.secondary"
 								sx={{ marginRight: "3px" }}
 							>
-								0
+								{product.starAverage}
 							</Typography>
 							<StarIcon sx={{ color: "#ffca28", width: "16px" }} />
 							<Box
@@ -118,7 +123,7 @@ const ProductCard = ({ product, setListProduct }) => {
 								color="text.secondary"
 								sx={{ marginRight: "3px" }}
 							>
-								Đã bán 0
+								Đã bán {product.totalSold}
 							</Typography>
 						</Box>
 						<Typography
@@ -257,7 +262,7 @@ const UpdateProductData = React.forwardRef((props, ref) => {
 	return (
 		<Box sx={{ ...style, width: 500 }} ref={ref}>
 			<Typography component="h1" variant="h5">
-				Cập nhật thông tin sản phẩm: {props.product.name}
+				Cập nhật thông tin sản phẩm
 			</Typography>
 			<Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 				<TextField
@@ -266,13 +271,16 @@ const UpdateProductData = React.forwardRef((props, ref) => {
 					id="product_name"
 					label="Tên sản phẩm"
 					name="productName"
+					defaultValue={props.product.name}
 					autoFocus
 				/>
 				<TextField
 					margin="normal"
+					OrderHandleCard
 					fullWidth
 					id="product_price"
 					label="Giá cả sản phẩm"
+					defaultValue={props.product.price}
 					name="productPrice"
 				/>
 				<TextField
@@ -280,6 +288,7 @@ const UpdateProductData = React.forwardRef((props, ref) => {
 					fullWidth
 					id="product_inventory"
 					label="Số lượng sản phẩm trong kho"
+					defaultValue={props.product.inventory}
 					name="productInventory"
 				/>
 				<TextField
@@ -287,10 +296,11 @@ const UpdateProductData = React.forwardRef((props, ref) => {
 					fullWidth
 					id="product_brand"
 					label="Nhãn hàng"
+					defaultValue={props.product.brand}
 					name="productBrand"
 				/>
 				<Button
-					type="sub			<UpdateProductData product={props.product} />mit"
+					type="submit"
 					fullWidth
 					variant="contained"
 					sx={{ mt: 3, mb: 2 }}
